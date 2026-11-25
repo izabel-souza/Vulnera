@@ -1,6 +1,6 @@
 # Vulnera — Analytical Platform for Vulnerability Intelligence and Prioritization
 
-This repository contains the undergraduate capstone project (Information Systems — Universidade Federal Fluminense, UFF) focused on the collection, integration, modeling, analysis, and visualization of public cybersecurity vulnerability data.
+This repository contains the undergraduate capstone project focused on the collection, integration, modeling, analysis, and visualization of public cybersecurity vulnerability data.
 
 The project consolidates multiple authoritative security datasets into a unified relational environment, enabling historical analysis (2015–2026), risk-based remediation prioritization, and correlation between software weaknesses and real-world adversary behavior.
 

@@ -1,151 +1,162 @@
-# Análise de Vulnerabilidades de Segurança (CVE Analysis)
+# Vulnera — Analytical Platform for Vulnerability Intelligence and Prioritization
 
-Este repositório contém o projeto de Trabalho de Conclusão de Curso (TCC) cujo objetivo é a coleta, integração, análise e visualização de dados de vulnerabilidades de segurança, com base em fontes públicas amplamente utilizadas na área de cibersegurança.
+This repository contains the undergraduate capstone project (Information Systems — Universidade Federal Fluminense, UFF) focused on the collection, integration, modeling, analysis, and visualization of public cybersecurity vulnerability data.
 
-O projeto busca consolidar diferentes bases de dados sobre vulnerabilidades, permitindo análises que auxiliem na compreensão do cenário de riscos, priorização de correções e estudo de tendências.
+The project consolidates multiple authoritative security datasets into a unified relational environment, enabling historical analysis (2015–2026), risk-based remediation prioritization, and correlation between software weaknesses and real-world adversary behavior.
 
-## Objetivo do Projeto
+## Project Objectives
 
-O objetivo principal do projeto é desenvolver uma plataforma de visualização interativa que permita analisar vulnerabilidades de segurança a partir de diferentes perspectivas, como severidade, probabilidade de exploração e exploração ativa conhecida.
+The primary objective of **Vulnera** is to provide an interactive analytical platform to evaluate security vulnerabilities across multiple risk dimensions—combining technical severity, exploitation probability, confirmed active exploitation, software weaknesses, and attack patterns.
 
-O sistema foi desenvolvido para:
+The system was engineered for:
 
-* Análise Histórica e Temporal: Cobertura abrangente de vulnerabilidades registradas entre 2015 e 2026.
+- **Historical and Temporal Analysis:** Comprehensive coverage of over 290,000 vulnerability records (CVEs) published between 2015 and 2026.
+- **Risk-Based Prioritization:** Multi-source data correlation (CVSS, EPSS, and KEV) to distinguish theoretical severity from imminent operational threats.
+- **Adversary Behavior Correlation:** Mapping software weaknesses (CWE) to offensive tactics and techniques in the MITRE ATT&CK framework via CAPEC.
 
-* Priorização Baseada em Risco: Cruzamento de dados para separar falhas teóricas de ameaças iminentes.
+## Integrated Data Sources
 
-* Correlação com Ataques Reais: Mapeamento de falhas de software para táticas e técnicas do framework MITRE ATT&CK.
+The platform integrates the following public datasets:
 
-## Fontes de Dados Utilizadas
+- **NVD / CVE (National Vulnerability Database):** Official repository maintained by NIST, providing detailed vulnerability metadata, descriptions, publication dates, CVSS severity metrics, and initial CWE classifications.
+- **EPSS (Exploit Prediction Scoring System):** Maintained by FIRST, providing daily statistical probability scores estimating the likelihood of a vulnerability being exploited within the next 30 days.
+- **KEV (Known Exploited Vulnerabilities):** Authoritative catalog maintained by CISA identifying vulnerabilities with confirmed active exploitation in the wild and known ransomware campaign usage.
+- **CWE (Common Weakness Enumeration):** Standardized MITRE dictionary categorizing underlying software and hardware programming weaknesses.
+- **MITRE ATT&CK & CAPEC:** Frameworks describing attack patterns, adversary objectives (Tactics), and offensive methods (Techniques).
 
-Atualmente, o projeto utiliza as seguintes fontes de dados:
+## Project Architecture
 
-* **NVD / CVE (National Vulnerability Database):** Base oficial mantida pelo NIST, contendo informações detalhadas sobre vulnerabilidades identificadas por CVE, incluindo severidade, descrição, produtos afetados e classificações de fraquezas (CWE).
-* **EPSS (Exploit Prediction Scoring System):** Sistema que fornece uma pontuação probabilística indicando a chance de uma vulnerabilidade ser explorada, auxiliando na priorização baseada em risco real.
-* **KEV (Known Exploited Vulnerabilities):** Lista mantida pela CISA que identifica vulnerabilidades já exploradas ativamente, sendo uma fonte crítica para análises de risco.
-* **CWE (Common Weakness Enumeration):** Dicionário que classifica dos tipos de falhas de programação que causam vulnerabilidades 
-* **MITRE ATT&CK & CAPEC**: Frameworks que descrevem os objetivos (Táticas) e métodos (Técnicas) utilizados pelos adversários.
+The architecture was designed for modularity, reproducibility, analytical query performance, and future scalability.
 
-## Arquitetura do Projeto
+**Core Components:**
 
-A arquitetura do projeto foi definida visando simplicidade, flexibilidade e possibilidade de evolução futura.
+- **Python (`Requests`, `Pandas`, `SQLAlchemy`):** Modular ETL scripts responsible for consuming external APIs/feeds, normalizing schemas, handling conflict resolution (`upsert`), and loading data into the relational database.
+- **PostgreSQL:** Relational database storing consolidated vulnerability records and many-to-many associative tables (`cve_cwe_mapping`, `cwe_mitre_mapping`, `mitre_tactic_technique`).
+- **Streamlit & Plotly:** Interactive web application and visualization layer supporting global filters, KPI cards, scatter plots, treemaps, and Sankey flow diagrams.
+- **Docker & Docker Compose:** Standardized containerized environment for the database and administration tools, ensuring local reproducibility and smooth cloud migration.
+- **GitHub Actions & Self-Hosted Runner:** Automated CI/CD data pipeline designed to execute scheduled updates securely against the local Docker database.
 
-**Componentes principais:**
+## Automation with GitHub Actions
 
-* **Python:** Scripts responsáveis por consumir as APIs das fontes de dados. Realizam o tratamento, normalização e inserção dos dados no banco.
-* **Streamlit & Plotly:** Biblioteca utilizada para a construção dos dashboards e visualizações interativas, permitindo rápida prototipação e alto nível de personalização.
-* **PostgreSQL:** Banco de dados relacional utilizado para armazenar os dados consolidados. Executado em ambiente containerizado.
-* **Docker:** Utilizado para padronizar o ambiente de execução do banco de dados, facilitando testes locais e futura migração para nuvem.
-* **Self-hosted Runner:** Execução dos fluxos de automação diretamente no ambiente local para integração com o banco de dados Docker.
-* **GitHub Actions:** Automação do pipeline de atualização de dados.
+During active development, the project utilized a data CI/CD pipeline to keep the database synchronized with daily updates from external sources such as the NVD.
 
+**Scheduled Workflow and Current Status**  
+Defined in `.github/workflows/update_data.yml`, the workflow was configured to run on a scheduled basis using a **Self-Hosted Runner** to safely interact with the local Docker database environment. Because the project has already been defended and concluded as an academic thesis—and the self-hosted runner required a local host machine and Docker containers running at execution time—scheduled automated runs are currently paused, while the workflow remains available in the repository for local or cloud-hosted reuse.
 
-## Automação com GitHub Actions
-O projeto conta com uma esteira de CI/CD para dados que mantém a base atualizada diariamente.
+**Security (`GitHub Secrets`)**  
+Access credentials are never exposed in the source code. To enable automated runs, configure the following secrets in the GitHub repository settings:
 
-Workflow Agendado
-Localizado em ```.github/workflows/update_data.yml```, o fluxo é executado automaticamente todo dia à meia-noite, utilizando um Self-hosted Runner para acessar o banco de dados local com segurança.
-
-Segurança (GitHub Secrets)
-As credenciais de acesso não estão expostas no código. Para o funcionamento da automação, é necessário configurar os seguintes segredos no repositório do GitHub:
-
->       DB_PASS: Senha do banco de dados PostgreSQL.
->       NVD_API_KEY: Chave de acesso à API do NIST.
+> DB_PASS: PostgreSQL database password.  
+> NVD_API_KEY: NIST NVD API access key.
 
 ---
 
-## Guia de Instalação e Execução
+## Installation and Execution Guide
 
-Siga os passos abaixo para configurar o ambiente e executar o projeto localmente.
+Follow the steps below to configure the environment and run the project locally.
 
-### Pré-requisitos
-* Git instalado.
-* [Docker Desktop](https://www.docker.com/) instalado.
-* [Python 3.9+](https://www.python.org/) instalado.
-* [GitHub Actions Runner](https://github.com/settings/actions/runners) configurado localmente.
+### Prerequisites
 
-### 1. Configuração do Banco de Dados (Docker)
+- [Git](https://git-scm.com/) installed.
+- [Docker Desktop](https://www.docker.com/) installed.
+- [Python 3.9+](https://www.python.org/) installed.
+- [GitHub Actions Runner](https://github.com/settings/actions/runners) configured locally (optional, required only if re-enabling scheduled automation).
 
-Na raiz do projeto, execute o comando para subir os containers do PostgreSQL e do pgAdmin:
+### 1. Database Setup (Docker)
+
+From the project root directory, start the PostgreSQL and pgAdmin containers:
 
 ```bash
 docker-compose up -d
 ```
 
-1.2. Acesso e Configuração do pgAdmin
-* Abra o navegador e acesse: http://localhost:5050
-* Faça login com as credenciais configuradas no docker-compose.yml:
+#### 1.2. Accessing and Configuring pgAdmin
 
->       Email: admin@admin.com 
->       Senha: admin
+- Open your browser and navigate to: `http://localhost:5050`
+- Log in using the credentials configured in `docker-compose.yml`:
 
-1.3 Conectar ao Servidor:
+> Email: admin@admin.com  
+> Password: admin
 
-* No pgAdmin, clique com botão direito em Servers > Register > Server.
+#### 1.3. Connecting to the Database Server
 
-* Na aba General:
->       Name (ex: Local Docker).
+- In pgAdmin, right-click **Servers > Register > Server**.
+- On the **General** tab:
 
-* Na aba Connection:
->       Host name/address: db (ou host.docker.internal)
->       Port: 5432
->       Username: admin
->       Password: admin_password
+> Name: Local Docker
 
-> As tabelas são criadas no primeiro boot através do script `ddl.sql` localizado em `docker-entrypoint-initdb/`.
+- On the **Connection** tab:
 
-* Clique em Save.
+> Host name/address: db (or host.docker.internal)  
+> Port: 5432  
+> Username: admin  
+> Password: admin_password
 
+> Database tables and indexes are automatically created on first boot via the `ddl.sql` script located in `docker-entrypoint-initdb/`.
 
-### 2. Instalação das Dependências
-Utilize o arquivo de requerimentos para preparar o ambiente:
+- Click **Save**.
+
+### 2. Installing Dependencies
+
+Install the required Python libraries using the requirements file:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Coleta e Orquestração de Dados (ETL)
+### 3. Data Ingestion and ETL Orchestration
 
-O projeto utiliza um Orquestrador Central que gerencia a ordem das cargas e a integridade do banco:
+The project uses a central orchestrator (`setup.py`) to manage execution order and preserve foreign-key referential integrity:
 
 ```bash
 python setup.py
 ```
-O setup.py automatiza a execução dos scripts de coleta localizados na pasta populate-tables. Ele garante que os dados sejam baixados das APIs e inseridos no banco respeitando a integridade referencial (Chaves Estrangeiras).
 
-⚠️ Importante: O orquestrador executa os scripts na ordem abaixo para evitar erros de dependência:
+`setup.py` automates the execution of the ingestion scripts located in the `populate-tables` directory, ensuring external data is extracted, transformed, and loaded in the proper relational dependency sequence.
 
-cve.py: Base principal (deve ser o primeiro a ser populado).
+**Important — Execution Order Managed by `setup.py`:**
 
-kev.py: Catálogo de vulnerabilidades exploradas.
+- `cve.py`: Core NVD/CVE vulnerability dataset (must be populated first).
+- `kev.py`: CISA Known Exploited Vulnerabilities catalog.
+- `epss.py`: FIRST exploitation probability scores.
+- `cwe.py`: Software weakness dictionary definitions.
+- `mitreattack.py`: MITRE ATT&CK tactics and techniques.
+- `capec.py`: Attack pattern mappings linking CWEs to ATT&CK techniques.
 
-epss.py: Pontuações de risco de exploração.
-
-cwe.py: Dicionário de fraquezas de software.
-
-Se preferir a execução manual (certifique-se de estar com o ambiente virtual ativo):
+If you prefer manual execution (ensure your virtual environment is active):
 
 ```bash
-# Entra na pasta dos scripts
-cd "populate tables"
+# Navigate to the ingestion scripts folder
+cd populate-tables
 
-# Executa a carga principal (Isso pode demorar alguns minutos)
+# Run core historical/incremental ingestion (may take several minutes on initial load)
 python cve.py
 
-# Executa as cargas complementares
+# Run enrichment and framework mapping scripts
 python kev.py
 python epss.py
 python cwe.py
+python mitreattack.py
+python capec.py
 
-# Retorna para a raiz do projeto
+# Return to the project root directory
 cd ..
 ```
 
-### 4. Execução do Dashboard
-Com o banco populado, inicie a aplicação Streamlit na raiz do projeto:
+### 4. Running the Analytical Dashboard
+
+With the database populated, start the Streamlit application from the project root:
 
 ```bash
 streamlit run app.py
 ```
 
-O dashboard abrirá automaticamente no seu navegador em: http://localhost:8501
+The dashboard will open automatically in your browser at: `http://localhost:8501`.
+
+---
+
+## Authors
+
+- **Izabel Cristina de Souza Soares** — [GitHub](https://github.com/izabel-souza)
+- **Isadora Bastos Duarte**
+- **Advisors:** Prof. Raphael Carlos Santos Machado and Prof. Clara Mattos Chagas Lino (Universidade Federal Fluminense — UFF, 2026)
